@@ -169,6 +169,48 @@ dbt docs serve
 
 ---
 
+## PR Review with Claude (`/ultrareview`)
+
+Every PR in this repo can be reviewed by Claude Code's multi-agent cloud reviewer before merging.
+
+### How to run it
+
+**On your local branch (no GitHub PR needed):**
+```
+/ultrareview
+```
+Bundles the current branch diff and runs a full multi-agent review locally.
+
+**On an open GitHub PR:**
+```
+/ultrareview <PR number>
+```
+Example: `/ultrareview 12`
+
+### What it checks
+
+The reviewer runs multiple specialist agents in parallel across the diff:
+
+- **SQL correctness** — logic errors, wrong join types, fan-out risks, NULL handling
+- **dbt best practices** — ref() vs source() misuse, missing tests, hardcoded schema names
+- **Business logic** — channel attribution gaps, dual-source cutover edge cases, grain violations
+- **Performance** — missing sort/dist keys, full table scans on large models, incremental strategy issues
+- **Test coverage** — untested primary keys, missing accepted_values on enum columns
+
+### When to use it
+
+Run `/ultrareview` before merging any PR that touches:
+- `macros/` — attribution logic change affects every downstream mart
+- `models/intermediate/marketing/` — business logic changes
+- `models/marts/marketing/mbt_leads.sql` — the most critical table in the project
+- Any model with cross-domain dependencies (e.g. anything that refs `mbt_leads` from mathgym)
+
+### Note
+
+`/ultrareview` is user-triggered from Claude Code (CLI or desktop app). It is billed per run. It does not run automatically in CI — that is handled by the GitHub Actions workflow which runs `dbt compile + run + test` on every PR.
+
+---
+
 ## Git Workflow
 
 ```
