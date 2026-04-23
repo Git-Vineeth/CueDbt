@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: superleap
+    description: "Superleap CRM — active from 2026-04-01. Replaces LeadSquared."
+    schema: thirdparty_crm_superleap
+    freshness:
+      warn_after: {count: 12, period: hour}
+      error_after: {count: 24, period: hour}
+    loaded_at_field: created_on
+
+    tables:
+      - name: opportunity
+        description: >
+          One row per CRM opportunity. Post-Apr 2026 era only.
+          Filters: is_deleted = false, type = 'Tutoring', created_on >= 2026-02-01.
+          Key: opportunity_id (UUID). Joins to app tables via student_service_id.

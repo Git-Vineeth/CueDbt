@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: int_marketing__lsq_enriched
+    description: "LSQ-era leads with channel attribution, landing page, and tracking enrichment applied."
+    columns:
+      - name: lead_id
+        tests: [unique, not_null]
+      - name: channel_ref
+        tests: [not_null]
+
+  - name: int_marketing__superleap_enriched
+    description: "Superleap-era opportunities with channel mapping and workable flags."
+    columns:
+      - name: opportunity_id
+        tests: [not_null]
+
+  - name: int_marketing__payments_enriched
+    description: "Payments with enrollment type normalised and payment type/fees_type derived."
+    columns:
+      - name: payment_id
+        tests: [unique, not_null]

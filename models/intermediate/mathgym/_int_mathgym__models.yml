@@ -1,0 +1,19 @@
+version: 2
+
+models:
+  - name: int_mathgym__subscription_events
+    description: "Cleaned RevenueCat events — SANDBOX and test users excluded."
+    columns:
+      - name: app_user_id
+        tests: [not_null]
+
+  - name: int_mathgym__user_subscription_status
+    description: "One row per user. Subscription cohort, lifecycle dates, and marketing attribution."
+    columns:
+      - name: app_user_id
+        tests: [unique, not_null]
+      - name: subscription_cohort
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['trial_active', 'trial_churned', 'active_paid', 'paid_churned']

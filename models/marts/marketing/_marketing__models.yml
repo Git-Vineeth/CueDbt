@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: mbt_leads
+    description: >
+      Master leads analytics table. One row per qualified lead.
+      Dual-source: LSQ (pre-2026-04-01) UNION Superleap (post-2026-04-01).
+      Replaces data_playground.mbt_leads (Periscope DROP+INSERT script).
+      Channel attribution applied via dbt macros — no Periscope runtime macros.
+    columns:
+      - name: lead_id
+        description: "Primary key. LeadSquared prospectid or Superleap opportunity_id."
+        tests: [unique, not_null]
+      - name: parent_service_id
+        description: "Join key to RevenueCat app_user_id (used by MathGym attribution)."
+        tests: [not_null]
+      - name: channel
+        description: "Normalized attribution channel. 10 values. Computed by dbt macros."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Referrals','Perf_google_brand','Perf_google_other','Perf_meta',
+                       'Perf_others','Organic Content','Organic Intent','Organic Brand',
+                       'Organic Non-Content','Others','TEACHER','Perf_google']
+      - name: region
+        description: "India / US / ROW"
+        tests:
+          - accepted_values:
+              values: ['India', 'US', 'ROW']
+      - name: grade_slab
+        description: "1. K-2 / 2. 3-5 / 3. 6-8 / 4. High (prefixed for BI sort order)"
+      - name: crm_source
+        description: "LSQ or Superleap — which CRM system this lead came from."
+        tests:
+          - accepted_values:
+              values: ['LSQ', 'Superleap']
+
+  - name: mbt_opportunity
+    description: >
+      Superleap CRM opportunity table (post-2026-04-01 era).
+      is_workable_unique = 1 is the canonical record per student for funnel counting.
+    columns:
+      - name: opportunity_id
+        description: "Primary key."
+        tests: [unique, not_null]
+      - name: is_workable
+        description: "1 = genuine workable lead; 0 = unqualified or false closure."
+      - name: is_workable_unique
+        description: "1 = canonical record per student for funnel counting."
+
+  - name: mbt_payments
+    description: >
+      Master payments analytics table. One row per payment transaction.
+      Junk invoices filtered. Attribution joined from mbt_leads.
+      Replaces data_playground.mbt_payments_2024.
+    columns:
+      - name: payment_id
+        description: "Primary key."
+        tests: [unique, not_null]
+      - name: fees_type
+        description: "first = student's first ever payment for this product. renewal = all subsequent."
+        tests:
+          - accepted_values:
+              values: ['first', 'renewal']
+      - name: payment_type
+        description: "normal or subscription (based on meta.subscription_id presence)."
+      - name: enrollment_type_final
+        description: "Normalised enrollment type. TRIAL_UPGRADE re-labels mis-coded trial payments."

@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: fct_mathgym_user_subscription_status
+    description: "Grain: one row per user. Source of truth for per-user MathGym subscription analysis."
+    columns:
+      - name: app_user_id
+        description: "Primary key."
+        tests: [unique, not_null]
+      - name: subscription_cohort
+        description: "trial_active / trial_churned / active_paid / paid_churned"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['trial_active', 'trial_churned', 'active_paid', 'paid_churned']
+      - name: trial_start_date
+        tests: [not_null]
+      - name: is_voluntary_churn
+        description: "true = user chose to cancel (UNSUBSCRIBE). false/null = billing or other reason."
+
+  - name: fct_mathgym_monthly_funnel
+    description: "Grain: one row per month. Funnel steps 1-12 from app open to payment initiated."
+    columns:
+      - name: month
+        tests: [unique, not_null]
+      - name: step_1_app_opens
+        tests: [not_null]
+
+  - name: fct_mathgym_monthly_subscription_summary
+    description: "Grain: one row per trial_start_month cohort. Conversion and churn summary."
+    columns:
+      - name: month
+        tests: [unique, not_null]
+      - name: total_trials
+        tests: [not_null]

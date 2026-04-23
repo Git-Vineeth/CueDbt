@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: payments
+    description: "Cuemath payment transactions."
+    schema: data_models
+    freshness:
+      warn_after: {count: 24, period: hour}
+      error_after: {count: 48, period: hour}
+    loaded_at_field: paid_on
+
+    tables:
+      - name: payment
+        description: >
+          Raw transactional payments table. One row per payment event.
+          Contains junk invoices (test/dummy/ops) that must be filtered — done in staging.
+          UAE dummy invoices (dummy_uae_n%) are real payments despite the name.

@@ -1,0 +1,22 @@
+version: 2
+
+sources:
+  - name: app
+    description: "Cuemath app services — parent/student profile and tracking."
+    schema: application_service_parent_student
+    freshness:
+      warn_after: {count: 24, period: hour}
+      error_after: {count: 48, period: hour}
+    loaded_at_field: created_on
+
+    tables:
+      - name: user_source_log
+        description: >
+          App tracking events. One row per tracking event per user.
+          Staged to one row per student (latest event via ROW_NUMBER).
+          Contains landing page, IP city, browser, OS from Cloudflare headers.
+
+      - name: parent_profile
+        description: >
+          Parent profile at signup. One row per parent.
+          Contains UTM params, device type, OS, IP city at the moment of signup.

@@ -1,0 +1,17 @@
+raw_source_channel,normalized_channel,channel_ref
+PAID_AD_GOOGLE,Perf_google,Performance
+PAID_AD_FACEBOOK,Perf_meta,Performance
+PAID_AD_FB,Perf_meta,Performance
+PAID_AD,Perf_others,Performance
+PAID_AD_AFFILIATE,Perf_others,Performance
+ORGANIC,Organic Non-Content,Organic
+ORGANIC_INBOUND,Organic Non-Content,Organic
+ORGANIC_DIRECT,Organic Non-Content,Organic
+ORGANIC_BRAND,Organic Non-Content,Organic
+ORGANIC_TEACHER,TEACHER,Organic
+REFERRAL_PARENT,Referrals,Referrals
+REFERRAL_SALES,Referrals,Referrals
+REFERRAL_STUDENT,Referrals,Referrals
+REFERRAL_TEACHER,Referrals,Referrals
+OTHER,Others,Others
+OTHERS,Others,Others

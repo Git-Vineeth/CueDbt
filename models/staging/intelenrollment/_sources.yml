@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: intelenrollment
+    description: "Student enrollment and profile data."
+    schema: application_service_intelenrollment
+    freshness:
+      warn_after: {count: 24, period: hour}
+      error_after: {count: 48, period: hour}
+    loaded_at_field: created_on
+
+    tables:
+      - name: student
+        description: "One row per student. Provides country_code and region derivation."

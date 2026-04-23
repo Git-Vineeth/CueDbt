@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: fct_mathfit_tests_net_adoption
+    description: "Grain: one row per region. Lifetime net adoption rate."
+    columns:
+      - name: region
+        tests:
+          - unique
+          - not_null
+          - accepted_values:
+              values: ['NAM', 'ISC', 'ROW']
+      - name: total_students_assigned
+        tests: [not_null]
+      - name: students_adopted
+        tests: [not_null]
+
+  - name: fct_mathfit_tests_monthly_summary
+    description: "Grain: one row per month. High-level engagement and completion."
+    columns:
+      - name: month
+        tests: [unique, not_null]
+
+  - name: fct_mathfit_tests_section_performance
+    description: "Grain: one row per section_title per month. Topic difficulty analysis."
+    columns:
+      - name: created_on_month
+        tests: [not_null]
+      - name: section_title
+        tests: [not_null]
+
+  - name: fct_mathfit_tests_student_monthly_engagement
+    description: "Grain: one row per student per month."
+    columns:
+      - name: student_id
+        tests: [not_null]
+      - name: month
+        tests: [not_null]

@@ -1,0 +1,35 @@
+version: 2
+
+sources:
+  - name: lsq
+    description: "LeadSquared CRM data — masked view over thirdparty_lsq.lsq_lead_data. Pre-Apr 2026 era."
+    schema: public
+    freshness:
+      warn_after: {count: 24, period: hour}
+      error_after: {count: 48, period: hour}
+    loaded_at_field: modifiedon
+
+    tables:
+      - name: lead_data
+        identifier: lsq_lead_data
+        description: >
+          Core LeadSquared lead table. One row per lead per CRM update state.
+          Phone and email are masked via f_mask_data_models(). Contains pre-computed
+          channel_old and channel columns but mbt_leads recomputes with dbt macros for accuracy.
+          5.3M rows. Data from 2017 onwards.
+
+  - name: thirdparty_lsq
+    description: "Raw LeadSquared CRM sync — latest CRM field updates."
+    schema: thirdparty_lsq
+    freshness:
+      warn_after: {count: 24, period: hour}
+      error_after: {count: 48, period: hour}
+    loaded_at_field: modifiedon
+
+    tables:
+      - name: leads_test
+        identifier: leads_test2
+        description: >
+          Latest CRM field updates per lead. Multiple rows per lead (one per update).
+          Deduplicated by ROW_NUMBER() on prospectid ORDER BY modifiedon DESC in staging.
+          Provides product_type, owner, mx_ethinicity not available in lsq.lead_data.

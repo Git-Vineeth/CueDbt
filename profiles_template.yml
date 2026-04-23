@@ -1,0 +1,38 @@
+# Copy this file to ~/.dbt/profiles.yml and fill in your credentials.
+# Never commit actual credentials to git.
+
+cue_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: redshift
+      host: <your-redshift-host>
+      user: <your-username>
+      password: "{{ env_var('DBT_PASSWORD') }}"
+      port: 5439
+      dbname: <your-database-name>
+      schema: "<your_name>_dev"   # e.g. vineeth_dev, ranjosh_dev, vinay_dev
+      threads: 4
+      ra3_node: true
+
+    prod:
+      type: redshift
+      host: <your-redshift-host>
+      user: dbt_prod
+      password: "{{ env_var('DBT_PROD_PASSWORD') }}"
+      port: 5439
+      dbname: <your-database-name>
+      schema: analytics
+      threads: 8
+      ra3_node: true
+
+    ci:
+      type: redshift
+      host: <your-redshift-host>
+      user: dbt_ci
+      password: "{{ env_var('DBT_CI_PASSWORD') }}"
+      port: 5439
+      dbname: <your-database-name>
+      schema: dbt_ci
+      threads: 4
+      ra3_node: true
