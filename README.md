@@ -52,19 +52,58 @@ dbt docs generate && dbt docs serve  # lineage + column docs at localhost:8080
 ## Project Structure
 
 ```
-models/
-├── staging/        # 1:1 from source — rename, cast, dedup. No business logic.
-├── intermediate/   # Joins + business logic. Not queried directly.
-└── marts/          # Final tables for BI and CueBI.
-    ├── marketing/      # mbt_leads, mbt_opportunity, mbt_payments
-    ├── mathgym/        # fct_mathgym_*
-    └── mathfit_tests/  # fct_mathfit_tests_*
-
-macros/             # Reusable SQL functions
-tests/              # Data quality assertions (assert_*.sql)
-seeds/              # Static lookup CSVs
-snapshots/          # Historical state capture
+CueDbt/
+├── models/
+│   ├── staging/                  # Layer 1 — 1:1 from source, views, no business logic
+│   │   ├── lsq/                  # LeadSquared CRM (public.lsq_lead_data)
+│   │   ├── superleap/            # Superleap CRM (post-Apr 2026)
+│   │   ├── app/                  # user_source_log + parent_profile
+│   │   ├── payments/             # data_models.payment
+│   │   ├── events/               # event_analytics.events (incremental)
+│   │   ├── revenuecat/           # RevenueCat subscription events
+│   │   ├── concepts/             # MathFit test data
+│   │   └── intelenrollment/      # Student profiles
+│   ├── intermediate/             # Layer 2 — joins + business logic, views
+│   │   ├── marketing/
+│   │   ├── mathgym/
+│   │   └── mathfit_tests/
+│   └── marts/                    # Layer 3 — final tables for BI + CueBI
+│       ├── marketing/
+│       ├── mathgym/
+│       └── mathfit_tests/
+├── macros/                       # Reusable SQL functions
+├── tests/                        # Data quality assertions (assert_*.sql)
+├── seeds/                        # Static lookup CSVs
+├── snapshots/                    # Historical state capture
+└── .github/workflows/            # CI — runs on every PR
 ```
+
+### Domains & Mart Models
+
+**Marketing** — lead-to-payment funnel
+
+| Model | Grain |
+|---|---|
+| `mbt_leads` | 1 qualified lead |
+| `mbt_opportunity` | 1 Superleap CRM opportunity |
+| `mbt_payments` | 1 payment transaction |
+
+**MathGym** — subscription funnel from app open to paid conversion
+
+| Model | Grain |
+|---|---|
+| `fct_mathgym_monthly_funnel` | 1 row per month (steps 1–12) |
+| `fct_mathgym_user_subscription_status` | 1 row per user |
+| `fct_mathgym_monthly_subscription_summary` | 1 row per trial cohort month |
+
+**MathFit Tests** — test assignment, completion, and section performance
+
+| Model | Grain |
+|---|---|
+| `fct_mathfit_tests_net_adoption` | 1 row per region (lifetime) |
+| `fct_mathfit_tests_monthly_summary` | 1 row per month |
+| `fct_mathfit_tests_section_performance` | 1 row per section per month |
+| `fct_mathfit_tests_student_monthly_engagement` | 1 row per student per month |
 
 ---
 
