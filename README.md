@@ -12,10 +12,10 @@ Cuemath's dbt project for analytics transformations across Marketing, MathGym, a
 git clone https://github.com/Git-Vineeth/CueDbt.git
 cd CueDbt
 
-python3.11 -m venv venv
-source venv/bin/activate
+uv venv --python 3.11
+source .venv/bin/activate
 
-pip install dbt-redshift==1.10.1
+uv pip install -r requirements.txt
 dbt deps
 ```
 
