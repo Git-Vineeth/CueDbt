@@ -1,9 +1,14 @@
 # Copy this file to ~/.dbt/profiles.yml and fill in your credentials.
 # Never commit actual credentials to git.
+#
+# GitHub Actions uses this file directly (cp profiles_template.yml ~/.dbt/profiles.yml)
+# and injects credentials via environment variables.
 
 cue_dbt:
   target: dev
   outputs:
+
+    # ── Local development ──────────────────────────────────────────────────────
     dev:
       type: redshift
       host: <your-redshift-host>
@@ -11,28 +16,30 @@ cue_dbt:
       password: "{{ env_var('DBT_PASSWORD') }}"
       port: 5439
       dbname: <your-database-name>
-      schema: "<your_name>_dev"   # e.g. vineeth_dev, ranjosh_dev, vinay_dev
+      schema: "<your_name>_dev"   # e.g. vineeth_dev, ranjosh_dev
       threads: 4
       ra3_node: true
 
-    prod:
-      type: redshift
-      host: <your-redshift-host>
-      user: dbt_prod
-      password: "{{ env_var('DBT_PROD_PASSWORD') }}"
-      port: 5439
-      dbname: <your-database-name>
-      schema: analytics
-      threads: 8
-      ra3_node: true
-
+    # ── CI (GitHub Actions — pull requests) ───────────────────────────────────
     ci:
       type: redshift
-      host: <your-redshift-host>
-      user: dbt_ci
-      password: "{{ env_var('DBT_CI_PASSWORD') }}"
+      host: "{{ env_var('REDSHIFT_HOST') }}"
+      user: "{{ env_var('REDSHIFT_CI_USER') }}"
+      password: "{{ env_var('REDSHIFT_CI_PASSWORD') }}"
       port: 5439
-      dbname: <your-database-name>
+      dbname: "{{ env_var('REDSHIFT_DBNAME') }}"
       schema: dbt_ci
       threads: 4
+      ra3_node: true
+
+    # ── Production (GitHub Actions — scheduled + on-merge) ────────────────────
+    prod:
+      type: redshift
+      host: "{{ env_var('REDSHIFT_HOST') }}"
+      user: "{{ env_var('REDSHIFT_PROD_USER') }}"
+      password: "{{ env_var('REDSHIFT_PROD_PASSWORD') }}"
+      port: 5439
+      dbname: "{{ env_var('REDSHIFT_DBNAME') }}"
+      schema: analytics
+      threads: 8
       ra3_node: true

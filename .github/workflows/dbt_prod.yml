@@ -1,0 +1,93 @@
+name: dbt Production
+
+on:
+  # Daily at 5 AM IST = 23:30 UTC
+  schedule:
+    - cron: '30 23 * * *'
+
+  # On every merge to main
+  push:
+    branches: [main]
+    paths:
+      - 'models/**'
+      - 'macros/**'
+      - 'tests/**'
+      - 'seeds/**'
+      - 'snapshots/**'
+
+  # Manual trigger — any team member hits "Run workflow" in GitHub UI
+  workflow_dispatch:
+
+jobs:
+  dbt-production:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt + Elementary
+        run: |
+          pip install uv
+          uv pip install --system -r requirements.txt
+          pip install "elementary-data[redshift]"
+          dbt deps
+
+      - name: Write profiles
+        run: |
+          mkdir -p ~/.dbt
+          cp profiles_template.yml ~/.dbt/profiles.yml
+
+      - name: dbt seed
+        run: dbt seed --target prod
+        env:
+          REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
+          REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
+          REDSHIFT_PROD_USER: ${{ secrets.REDSHIFT_PROD_USER }}
+          REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
+
+      - name: dbt run
+        run: dbt run --target prod
+        env:
+          REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
+          REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
+          REDSHIFT_PROD_USER: ${{ secrets.REDSHIFT_PROD_USER }}
+          REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
+
+      - name: dbt test
+        run: dbt test --target prod
+        env:
+          REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
+          REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
+          REDSHIFT_PROD_USER: ${{ secrets.REDSHIFT_PROD_USER }}
+          REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
+
+      - name: Generate Elementary report
+        run: edr report --profiles-dir ~/.dbt --profile-target prod
+        env:
+          REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
+          REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
+          REDSHIFT_PROD_USER: ${{ secrets.REDSHIFT_PROD_USER }}
+          REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
+
+      - name: Upload Elementary report to S3
+        run: |
+          aws s3 sync edr_target/ s3://cuemath-data-reports/elementary/ --delete
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ap-south-1
+
+      - name: Notify Slack on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v2
+        with:
+          payload: |
+            {
+              "text": ":red_circle: *dbt production run FAILED*\nTrigger: `${{ github.event_name }}`\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run logs>"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

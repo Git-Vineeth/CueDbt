@@ -2,6 +2,7 @@ name: dbt CI
 
 on:
   pull_request:
+    branches: [main]
     paths:
       - 'models/**'
       - 'macros/**'
@@ -16,48 +17,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install dbt
-        run: pip install dbt-redshift==1.10.1
+        run: |
+          pip install uv
+          uv pip install --system -r requirements.txt
+          dbt deps
 
-      - name: Write profiles.yml
+      - name: Write profiles
         run: |
           mkdir -p ~/.dbt
-          cat > ~/.dbt/profiles.yml << 'EOF'
-          cue_dbt:
-            target: ci
-            outputs:
-              ci:
-                type: redshift
-                host: ${{ secrets.REDSHIFT_HOST }}
-                user: ${{ secrets.REDSHIFT_CI_USER }}
-                password: ${{ secrets.REDSHIFT_CI_PASSWORD }}
-                port: 5439
-                dbname: ${{ secrets.REDSHIFT_DBNAME }}
-                schema: dbt_ci
-                threads: 4
-                ra3_node: true
-          EOF
+          cp profiles_template.yml ~/.dbt/profiles.yml
 
-      - name: Install packages
-        run: dbt deps
-
-      - name: Compile (catch syntax errors)
+      - name: dbt compile
         run: dbt compile --target ci
-
-      - name: Run changed models
-        run: dbt run --select state:modified+ --target ci --defer --state ./target
         env:
-          DBT_PROFILES_DIR: ~/.dbt
+          REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
+          REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
+          REDSHIFT_CI_USER: ${{ secrets.REDSHIFT_CI_USER }}
+          REDSHIFT_CI_PASSWORD: ${{ secrets.REDSHIFT_CI_PASSWORD }}
 
-      - name: Test changed models
-        run: dbt test --select state:modified+ --target ci
+      - name: dbt run
+        run: dbt run --target ci
         env:
-          DBT_PROFILES_DIR: ~/.dbt
+          REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
+          REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
+          REDSHIFT_CI_USER: ${{ secrets.REDSHIFT_CI_USER }}
+          REDSHIFT_CI_PASSWORD: ${{ secrets.REDSHIFT_CI_PASSWORD }}
+
+      - name: dbt test
+        run: dbt test --target ci
+        env:
+          REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
+          REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
+          REDSHIFT_CI_USER: ${{ secrets.REDSHIFT_CI_USER }}
+          REDSHIFT_CI_PASSWORD: ${{ secrets.REDSHIFT_CI_PASSWORD }}
