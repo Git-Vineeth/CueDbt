@@ -33,6 +33,10 @@ models:
       mathfit_tests:
         +schema: mathfit_tests
 
+  elementary:
+    +schema: elementary
+    +materialized: table
+
 seeds:
   cue_dbt:
     +schema: seeds
@@ -47,9 +51,3 @@ vars:
   marketing_start_date: '2022-04-01'
   superleap_cutover_date: '2026-04-01'
   mathgym_launch_date: '2026-02-11'
-
-# Elementary writes its run + test results to this schema
-models:
-  elementary:
-    +schema: elementary
-    +materialized: table
