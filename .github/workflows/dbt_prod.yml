@@ -85,6 +85,7 @@ jobs:
         if: failure()
         uses: slackapi/slack-github-action@v2
         with:
+          webhook-type: incoming-webhook
           payload: |
             {
               "text": ":red_circle: *dbt production run FAILED*\nTrigger: `${{ github.event_name }}`\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run logs>"
