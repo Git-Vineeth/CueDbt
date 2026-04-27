@@ -13,25 +13,25 @@ with_channel as (
     select
         *,
 
-        -- Superleap channel mapping (simpler than LSQ — source_channel is already clean)
+        -- source_channel is already human-readable (e.g. 'Perf Meta', 'Perf Google', 'Referral')
+        -- Normalise to canonical channel buckets used across LSQ and Superleap eras
         case
-            when source_channel_raw in ('ORGANIC', 'ORGANIC_INBOUND',
-                                         'ORGANIC_DIRECT', 'ORGANIC_BRAND') then 'Organic Non-Content'
-            when source_channel_raw = 'ORGANIC_TEACHER'                     then 'TEACHER'
-            when source_channel_raw in ('PAID_AD_FACEBOOK', 'PAID_AD_FB')   then 'Perf_meta'
-            when source_channel_raw = 'PAID_AD_GOOGLE'                      then 'Perf_google'
-            when source_channel_raw in ('REFERRAL_PARENT', 'REFERRAL_SALES',
-                                         'REFERRAL_STUDENT', 'REFERRAL_TEACHER')
-                                                                             then 'Referrals'
-            when source_channel_raw in ('PAID_AD', 'PAID_AD_AFFILIATE')     then 'Perf_others'
+            when source_channel_raw ilike '%organic%'                       then 'Organic'
+            when source_channel_raw ilike '%perf meta%'
+              or source_channel_raw ilike '%perf_meta%'                     then 'Perf_meta'
+            when source_channel_raw ilike '%perf google%'
+              or source_channel_raw ilike '%perf_google%'                   then 'Perf_google'
+            when source_channel_raw ilike '%perf%'                          then 'Perf_others'
+            when source_channel_raw ilike '%referral%'                      then 'Referrals'
+            when source_channel_raw ilike '%app%'                           then 'App'
             else                                                                  'Others'
         end                                                                  as channel,
 
-        -- Simplified channel_ref for Superleap (no 4-macro chain needed)
+        -- Simplified channel_ref aligned with revenue_channel codes
         case
-            when source_channel_raw like 'REFERRAL%'                        then 'Referrals'
-            when source_channel_raw like 'PAID_AD%'                         then 'Performance'
-            when source_channel_raw like 'ORGANIC%'                         then 'Organic'
+            when revenue_channel = 'REFERRAL'                               then 'Referrals'
+            when revenue_channel = 'PAID_AD'                                then 'Performance'
+            when revenue_channel = 'ORGANIC'                                then 'Organic'
             else                                                                  'Others'
         end                                                                  as channel_ref,
 
@@ -68,7 +68,7 @@ with_dedup as (
     select
         *,
         row_number() over (
-            partition by student_service_id
+            partition by student_id_crm
             order by
                 case when state = 'Open' then 0 else 1 end,
                 created_at_utc desc

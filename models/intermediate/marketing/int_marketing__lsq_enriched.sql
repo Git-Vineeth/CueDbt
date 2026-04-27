@@ -38,7 +38,7 @@ enriched as (
         l.parent_id,
 
         -- Dates: referral date takes priority over CRM creation date
-        coalesce(l.mx_referral_type, null)                      as referral_type_raw,
+        l.referral_type                                          as referral_type_raw,
         coalesce(
             case when l.referral_type is not null
                  then {{ utc_to_ist('l.created_at_utc') }}

@@ -50,7 +50,7 @@ jobs:
           REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
 
       - name: dbt run
-        run: dbt run --target prod
+        run: dbt run --target prod --exclude package:elementary
         env:
           REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
           REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
@@ -58,7 +58,7 @@ jobs:
           REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
 
       - name: dbt test
-        run: dbt test --target prod
+        run: dbt test --target prod --exclude package:elementary
         env:
           REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
           REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
