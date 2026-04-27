@@ -87,7 +87,6 @@ renamed as (
         mx_lead_type_new,
         mx_lead_segment,
         mx_lead_channel,
-        mx_sales_process,
         mx_tenure,
         duplicate_flag,
         duplicate_new,

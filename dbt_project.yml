@@ -2,6 +2,9 @@ name: 'cue_dbt'
 version: '1.0.0'
 config-version: 2
 
+flags:
+  require_explicit_package_overrides_for_builtin_materializations: false
+
 profile: 'cue_dbt'
 
 model-paths: ["models"]

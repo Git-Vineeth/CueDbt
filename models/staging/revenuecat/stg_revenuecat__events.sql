@@ -18,10 +18,10 @@ renamed as (
         environment,
         price_usd,
 
-        -- Extracted from SUPER type raw_payload
-        json_extract_path_text(raw_payload, 'is_family_share', true)::boolean
+        -- Extracted from SUPER type raw_payload (cast to text first — json_extract_path_text does not accept SUPER directly)
+        json_extract_path_text(raw_payload::text, 'is_family_share', true)::boolean
                                                                as is_family_plan,
-        json_extract_path_text(raw_payload, 'cancel_reason', true)::text
+        json_extract_path_text(raw_payload::text, 'cancel_reason', true)::text
                                                                as cancel_reason,
 
         created_on,

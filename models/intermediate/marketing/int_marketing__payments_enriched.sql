@@ -53,7 +53,7 @@ with_region as (
         end                                                                      as region,
 
         -- Amount in USD
-        round(amount * currency_conversion_rate, 2)                              as amount_usd,
+        round(amount::numeric * currency_conversion_rate::numeric, 2)            as amount_usd,
 
         -- Gross vs net booking
         case

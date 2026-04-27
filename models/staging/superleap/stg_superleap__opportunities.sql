@@ -15,7 +15,7 @@ with source as (
 renamed as (
 
     select
-        opportunity_id,
+        id                                                      as opportunity_id,
         student_service_id,
         parent_service_id,
 

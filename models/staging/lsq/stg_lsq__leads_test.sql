@@ -34,14 +34,8 @@ renamed as (
         prospectid                                              as lead_id,
         modifiedon                                              as updated_at_utc,
 
-        -- Product type (normalised)
-        case
-            when lower(product_type) in ('hybrid', 'class_k5')  then 'Hybrid'
-            when product_type is null                            then 'Plus'
-            when lower(product_type) in ('base', 'base')        then 'Base'
-            when lower(product_type) = 'high'                   then 'High'
-            else product_type
-        end                                                     as product_type,
+        -- product_type column not present in this source table
+        null::text                                              as product_type,
 
         -- CRM ownership
         owneridname                                             as owner_name,
