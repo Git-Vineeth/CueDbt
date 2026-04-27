@@ -12,8 +12,10 @@ models:
         description: "Primary key. LeadSquared prospectid or Superleap opportunity_id."
         tests: [unique, not_null]
       - name: parent_service_id
-        description: "Join key to RevenueCat app_user_id (used by MathGym attribution)."
-        tests: [not_null]
+        description: "Join key to RevenueCat app_user_id (used by MathGym attribution). Null for Superleap records — Superleap CRM does not carry service IDs."
+        tests:
+          - not_null:
+              severity: warn
       - name: channel
         description: "Normalized attribution channel. 10 values. Computed by dbt macros."
         tests:
