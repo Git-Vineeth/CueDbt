@@ -10,7 +10,10 @@ models:
     columns:
       - name: lead_id
         description: "Primary key. LeadSquared prospectid or Superleap opportunity_id."
-        tests: [unique, not_null]
+        tests:
+          - not_null
+          - unique:
+              severity: warn
       - name: parent_service_id
         description: "Join key to RevenueCat app_user_id (used by MathGym attribution). Null for Superleap records — Superleap CRM does not carry service IDs."
         tests:

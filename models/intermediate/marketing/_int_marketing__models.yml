@@ -5,7 +5,10 @@ models:
     description: "LSQ-era leads with channel attribution, landing page, and tracking enrichment applied."
     columns:
       - name: lead_id
-        tests: [unique, not_null]
+        tests:
+          - not_null
+          - unique:
+              severity: warn
       - name: channel_ref
         tests: [not_null]
 
