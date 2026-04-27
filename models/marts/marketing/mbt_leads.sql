@@ -11,7 +11,19 @@
     )
 }}
 
-with lsq_leads as (
+-- Pre-compute grade as integer to avoid Redshift optimizer evaluating grade::int
+-- on non-numeric values (e.g. 'K' for Kindergarten) before the CASE condition is checked
+lsq_raw as (
+
+    select
+        *,
+        case when grade ~ '^[0-9]+$' then grade::int else null end as grade_int
+    from {{ ref('int_marketing__lsq_enriched') }}
+    where created_date < '{{ var("superleap_cutover_date") }}'
+
+),
+
+lsq_leads as (
 
     select
         lead_id,
@@ -48,12 +60,12 @@ with lsq_leads as (
         referral_type,
         ref_status,
 
-        -- Grade slab — guard against non-numeric grades (e.g. 'K' for Kindergarten)
+        -- grade_int is already null-safe (null when non-numeric)
         case
-            when grade ~ '^[0-9]+$' and grade::int between 9 and 12    then '4. High'
-            when grade ~ '^[0-9]+$' and grade::int between 6 and 8     then '3. 6-8'
-            when grade ~ '^[0-9]+$' and grade::int between 3 and 5     then '2. 3-5'
-            else                                                              '1. K-2'
+            when grade_int between 9 and 12    then '4. High'
+            when grade_int between 6 and 8     then '3. 6-8'
+            when grade_int between 3 and 5     then '2. 3-5'
+            else                                    '1. K-2'
         end                                                     as grade_slab,
 
         -- Region
@@ -94,8 +106,7 @@ with lsq_leads as (
 
         'LSQ'                                                   as crm_source
 
-    from {{ ref('int_marketing__lsq_enriched') }}
-    where created_date < '{{ var("superleap_cutover_date") }}'
+    from lsq_raw
 
 ),
 
