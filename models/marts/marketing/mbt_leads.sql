@@ -48,12 +48,12 @@ with lsq_leads as (
         referral_type,
         ref_status,
 
-        -- Grade slab (prefixed for BI tool sort order)
+        -- Grade slab — guard against non-numeric grades (e.g. 'K' for Kindergarten)
         case
-            when grade::int between 9 and 12    then '4. High'
-            when grade::int between 6 and 8     then '3. 6-8'
-            when grade::int between 3 and 5     then '2. 3-5'
-            else                                     '1. K-2'
+            when grade ~ '^[0-9]+$' and grade::int between 9 and 12    then '4. High'
+            when grade ~ '^[0-9]+$' and grade::int between 6 and 8     then '3. 6-8'
+            when grade ~ '^[0-9]+$' and grade::int between 3 and 5     then '2. 3-5'
+            else                                                              '1. K-2'
         end                                                     as grade_slab,
 
         -- Region
