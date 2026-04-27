@@ -40,6 +40,6 @@ cue_dbt:
       password: "{{ env_var('REDSHIFT_PROD_PASSWORD') }}"
       port: 5439
       dbname: "{{ env_var('REDSHIFT_DBNAME') }}"
-      schema: analytics
+      schema: data_playground
       threads: 8
       ra3_node: true
