@@ -13,7 +13,7 @@
 
 -- Pre-compute grade as integer to avoid Redshift optimizer evaluating grade::int
 -- on non-numeric values (e.g. 'K' for Kindergarten) before the CASE condition is checked
-lsq_raw as (
+with lsq_raw as (
 
     select
         *,
