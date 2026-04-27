@@ -38,10 +38,24 @@ with_channel as (
         -- UTM medium bucket
         {{ utm_medium_grouping('utm_medium', 'source_channel_raw') }}        as utm_medium_normalized,
 
+        -- Null-placeholder columns expected by mart models (not available in Superleap source)
+        null::varchar                                                        as student_service_id,
+        null::varchar                                                        as parent_service_id,
+        null::varchar                                                        as sub_region,
+        null::varchar                                                        as ethnicity,
+
+        -- Grade slab (consistent with LSQ bucketing in mbt_leads)
+        case
+            when grade between 9 and 12                                      then '4. High'
+            when grade between 6 and 8                                       then '3. 6-8'
+            when grade between 3 and 5                                       then '2. 3-5'
+            else                                                                  '1. K-2'
+        end                                                                  as grade_slab,
+
         -- Workable flags
         0                                                                    as is_unqualified,
         case
-            when state = 'Closed'
+            when lower(state) = 'closed'
                  and closure_reason in ('Active', 'New')                    then 1
             else 0
         end                                                                  as is_close_type1
@@ -70,7 +84,7 @@ with_dedup as (
         row_number() over (
             partition by student_id_crm
             order by
-                case when state = 'Open' then 0 else 1 end,
+                case when lower(state) = 'open' then 0 else 1 end,
                 created_at_utc desc
         )                                                                    as workable_rank
 
