@@ -29,11 +29,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dbt + Elementary
+      - name: Install dbt
         run: |
           pip install uv
           uv pip install --system -r requirements.txt
-          pip install "elementary-data[redshift]"
           dbt deps
 
       - name: Write profiles
@@ -65,32 +64,12 @@ jobs:
           REDSHIFT_PROD_USER: ${{ secrets.REDSHIFT_PROD_USER }}
           REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
 
-      - name: Generate Elementary report
-        run: edr report --profiles-dir ~/.dbt --profile-target prod
-        env:
-          REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
-          REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
-          REDSHIFT_PROD_USER: ${{ secrets.REDSHIFT_PROD_USER }}
-          REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
-
-      - name: Upload Elementary report to S3
+      - name: Notify Slack on success
         run: |
-          aws s3 sync edr_target/ s3://cuemath-dbt-reports/elementary/ --delete
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ap-south-1
-
-      - name: Generate pre-signed report URL and notify Slack
-        run: |
-          REPORT_URL=$(aws s3 presign s3://cuemath-dbt-reports/elementary/elementary_report.html --expires-in 604800)
           curl -s -X POST "$SLACK_WEBHOOK_URL" \
             -H "Content-Type: application/json" \
-            -d "{\"text\": \":large_green_circle: *dbt production run passed*\nTrigger: \`${{ github.event_name }}\`\n<${REPORT_URL}|View Elementary report> (valid 7 days)\"}"
+            -d "{\"text\": \":large_green_circle: *dbt production run passed*\nTrigger: \`${{ github.event_name }}\`\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run logs>\"}"
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ap-south-1
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Notify Slack on failure
