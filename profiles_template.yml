@@ -43,3 +43,19 @@ cue_dbt:
       schema: data_playground
       threads: 8
       ra3_node: true
+      prepared_statements_enabled: false
+
+# Elementary monitoring — schema must match where Elementary tables are materialized
+elementary:
+  target: prod
+  outputs:
+    prod:
+      type: redshift
+      host: "{{ env_var('REDSHIFT_HOST') }}"
+      user: "{{ env_var('REDSHIFT_PROD_USER') }}"
+      password: "{{ env_var('REDSHIFT_PROD_PASSWORD') }}"
+      port: 5439
+      dbname: "{{ env_var('REDSHIFT_DBNAME') }}"
+      schema: data_playground
+      threads: 4
+      ra3_node: true

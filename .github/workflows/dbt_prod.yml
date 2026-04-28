@@ -29,10 +29,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dbt
+      - name: Install dbt + Elementary
         run: |
           pip install uv
           uv pip install --system -r requirements.txt
+          pip install "elementary-data[redshift]"
           dbt deps
 
       - name: Write profiles
@@ -63,6 +64,38 @@ jobs:
           REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
           REDSHIFT_PROD_USER: ${{ secrets.REDSHIFT_PROD_USER }}
           REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
+
+      - name: Run Elementary models
+        run: dbt run --target prod --select package:elementary
+        env:
+          REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
+          REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
+          REDSHIFT_PROD_USER: ${{ secrets.REDSHIFT_PROD_USER }}
+          REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
+
+      - name: Patch edr for Redshift compatibility
+        run: |
+          EDR_MACROS=$(python3 -c "import os, elementary; print(os.path.join(os.path.dirname(elementary.__file__), 'monitor/dbt_project/macros'))")
+          cat > "$EDR_MACROS/redshift_target_database.sql" << 'MACRO'
+          {% macro redshift__target_database() %}
+              {% do return(none) %}
+          {% endmacro %}
+          MACRO
+
+      - name: Generate Elementary report
+        run: edr report --profiles-dir ~/.dbt --profile-target prod
+        env:
+          REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
+          REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
+          REDSHIFT_PROD_USER: ${{ secrets.REDSHIFT_PROD_USER }}
+          REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
+
+      - name: Upload Elementary report to S3
+        run: aws s3 cp edr_target/elementary_report.html s3://cuemath-dbt-reports/elementary/elementary_report.html
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ap-south-1
 
       - name: Notify Slack on success
         run: |
