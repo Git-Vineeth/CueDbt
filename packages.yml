@@ -5,4 +5,4 @@ packages:
   # Elementary: run history, test results, and data freshness dashboard
   # Verify latest version at https://hub.getdbt.com/elementary-data/elementary/latest/
   - package: elementary-data/elementary
-    version: 0.16.3
+    version: 0.23.1
