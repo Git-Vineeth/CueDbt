@@ -1,6 +1,6 @@
 -- Grain: one row per section per student per test.
 -- Pure joins only — no aggregation here.
--- section_status is derived from user_node.state (source of truth, not timestamps).
+-- section_status: section_score presence is the ground truth for COMPLETED; user_node.state is the fallback.
 
 with base as (
 
@@ -36,12 +36,13 @@ with base as (
         ua.time_spent                       as attempt_time_spent,
 
         case
-            when un.state = 'COMPLETED'     then 'COMPLETED'
-            when un.state = 'IN_PROGRESS'   then 'IN_PROGRESS'
-            when un.state = 'NOT_STARTED'   then 'NOT_STARTED'
-            when un.state = 'LOCKED'        then 'LOCKED'
+            when mfs.section_score is not null  then 'COMPLETED'
+            when un.state = 'COMPLETED'         then 'COMPLETED'
+            when un.state = 'IN_PROGRESS'       then 'IN_PROGRESS'
+            when un.state = 'NOT_STARTED'       then 'NOT_STARTED'
+            when un.state = 'LOCKED'            then 'LOCKED'
             else un.state
-        end                                 as section_status
+        end                                     as section_status
 
     from {{ ref('stg_concepts__mathfit_test_section') }} mfs
     left join {{ ref('stg_concepts__mathfit_test') }} mft
@@ -54,7 +55,3 @@ with base as (
 )
 
 select * from base
-where mathfit_test_id != '879094ce-d97c-11f0-8895-96675ccd88a1'
--- Known data anomaly: state=NOT_STARTED but complete_status=True with section_score populated.
--- Confirmed 2026-04-04. student_id: cd6cd488-4016-4434-a917-a5378aef9942.
--- Flagged to dev team. Root cause unknown.

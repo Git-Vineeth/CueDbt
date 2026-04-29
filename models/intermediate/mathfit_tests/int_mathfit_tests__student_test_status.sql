@@ -31,7 +31,11 @@ select
     sections_not_started,
     sections_locked,
     total_section_score,
-    overall_score,
+    case
+        when sections_completed = sections_assigned
+             and sections_assigned > 0                          then overall_score
+        else                                                         null
+    end                                                         as overall_score,
     case
         when sections_completed = sections_assigned
              and sections_assigned > 0                          then 'FULL_COMPLETION'
