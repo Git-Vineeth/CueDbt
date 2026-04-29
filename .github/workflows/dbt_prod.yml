@@ -57,16 +57,16 @@ jobs:
           REDSHIFT_PROD_USER: ${{ secrets.REDSHIFT_PROD_USER }}
           REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
 
-      - name: dbt test
-        run: dbt test --target prod --exclude package:elementary
+      - name: Run Elementary models
+        run: dbt run --target prod --select package:elementary
         env:
           REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
           REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}
           REDSHIFT_PROD_USER: ${{ secrets.REDSHIFT_PROD_USER }}
           REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
 
-      - name: Run Elementary models
-        run: dbt run --target prod --select package:elementary
+      - name: dbt test
+        run: dbt test --target prod --exclude package:elementary
         env:
           REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
           REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}

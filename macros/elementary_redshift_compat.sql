@@ -51,6 +51,17 @@
     {%- endif %}
 {% endmacro %}
 
+-- Redshift temp tables live in pg_temp_NNN, not in the target schema.
+-- redshift__get_columns_in_relation filters WHERE table_schema = 'data_playground',
+-- so it returns zero columns for any temp table and insert_rows bails silently —
+-- the on-run-end hook completes without error but writes nothing to the
+-- Elementary tables. Returning false forces Elementary to use regular (non-temp)
+-- tables for all intermediate relations. Those land in data_playground and are
+-- visible to get_columns_in_relation, so insert_rows works correctly.
+{% macro redshift__has_temp_table_support() %}
+    {% do return(false) %}
+{% endmacro %}
+
 -- Redshift rejects BEGIN...COMMIT as a single prepared statement.
 -- This override splits the delete and insert into separate run_query calls,
 -- matching the pattern already used by Spark/Athena/Trino adapters in Elementary.
