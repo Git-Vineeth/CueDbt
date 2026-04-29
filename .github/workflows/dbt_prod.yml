@@ -33,7 +33,7 @@ jobs:
         run: |
           pip install uv
           uv pip install --system -r requirements.txt
-          pip install "elementary-data[redshift]"
+          pip install "elementary-data[redshift]==0.23.1"
           dbt deps
 
       - name: Write profiles
@@ -66,7 +66,7 @@ jobs:
           REDSHIFT_PROD_PASSWORD: ${{ secrets.REDSHIFT_PROD_PASSWORD }}
 
       - name: Run Elementary models
-        run: dbt run --target prod --select package:elementary
+        run: dbt run --target prod --full-refresh --select package:elementary
         env:
           REDSHIFT_HOST: ${{ secrets.REDSHIFT_HOST }}
           REDSHIFT_DBNAME: ${{ secrets.REDSHIFT_DBNAME }}

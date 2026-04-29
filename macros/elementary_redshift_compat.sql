@@ -1,3 +1,10 @@
+-- Redshift uses two-part naming (schema.table), not three-part (database.schema.table).
+-- Without this, Elementary's default__target_database() returns target.dbname ("cuemath"),
+-- causing "X does not exist" errors when Elementary models build relation references.
+{% macro redshift__target_database() %}
+    {% do return(none) %}
+{% endmacro %}
+
 -- Redshift rejects BEGIN...COMMIT as a single prepared statement.
 -- This override splits the delete and insert into separate run_query calls,
 -- matching the pattern already used by Spark/Athena/Trino adapters in Elementary.
